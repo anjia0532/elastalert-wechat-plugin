@@ -1,7 +1,6 @@
 #! /usr/bin/env python 
 # -*- coding: utf-8 -*-
 
-#from __future__ import unicode_literals 
 import urllib,urllib2
 import json
 import sys
@@ -13,10 +12,10 @@ import requests
 
 '''
 ##########################################################
-# 微信企业号推送消息                                     #
+# 微信企业号推送消息                                       #
 #                                                        #
-# 作者: AnJia <anjia0532@gmail.com>                      #
-# 作者博客: https://anjia.ml/                            #
+# 作者: AnJia <anjia0532@gmail.com>                       #
+# 作者博客: https://anjia.ml/                             #
 # Github: https://github.com/anjia0532/weixin-qiye-alert #
 #                                                        #
 ##########################################################
@@ -24,7 +23,6 @@ import requests
 class WeChatAlerter(Alerter):
 
 	#企业号id，secret，应用id必填
-
     required_options = frozenset(['corp_id','secret','agent_id'])
 
     def __init__(self, *args):
@@ -38,41 +36,39 @@ class WeChatAlerter(Alerter):
         self.tag_id = self.rule.get('tag_id', '') 		#标签id
         self.access_token = ''                          #微信身份令牌
         #self.expires_in=datetime.datetime.now() - datetime.timedelta(seconds=60)
+        
+        self.headers = {'content-type': 'application/json'}
 
     def create_default_title(self, matches):
         subject = 'ElastAlert: %s' % (self.rule['name'])
         return subject
 
     def alert(self, matches):
-    	# https://github.com/Yelp/elastalert/blob/master/elastalert/alerts.py#L236-L243
+    	
+        # https://github.com/Yelp/elastalert/blob/master/elastalert/alerts.py#L236-L243
         body = self.create_alert_body(matches)
 
+        # 获取微信企业号的accessToken
         # http://qydev.weixin.qq.com/wiki/index.php?title=AccessToken
         self.get_token()
         
-        #print self.access_token
-        #print self.expires_in
-
-        self.senddata(body)
+        self.send_data(body)
+        
         elastalert_logger.info("发送消息给 %s" % (self.corp_id))
 
     def get_token(self):
-
-        #if self.expires_in >= datetime.datetime.now() and not self.access_token:
-        #    return self.access_token
 
     	#构建获取token的url
         get_token_url = 'https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=' + self.corp_id + '&corpsecret=' + self.secret
 
         try:
-            token_file = urllib2.urlopen(get_token_url)
-        except urllib2.HTTPError as e:
-            print e.code
-            print e.read().decode("utf8")
+            response = requests.get(get_token_url, headers=self.headers)
+            response.raise_for_status()
+        except RequestException as e:
+            raise EAException("推送微信消息--获取accessToken时失败: %s" % e)
             sys.exit()
 
-        token_data = token_file.read().decode('utf-8')
-        token_json = json.loads(token_data)
+        token_json = json.loads(response.text)
         token_json.keys()
 
         #获取access_token和expires_in
@@ -81,16 +77,16 @@ class WeChatAlerter(Alerter):
         
         return self.access_token
 
-    def senddata(self, content):
+    
+    def send_data(self, content):
         
+        # 微信企业号文本消息有字符长度限制,文档上说限制1000字符,但是我实际测试,可以上传2090个字符
+        # 超长的进行截断处理
         if len(content) > 2000:
             content = content[:1997] + "..."
         
         send_url = 'https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=' + self.access_token
 
-
-        # post to pagerduty
-        headers = {'content-type': 'application/json'}
         payload = {
             'totag': self.tag_id,
             'msgtype': "text",
@@ -101,20 +97,19 @@ class WeChatAlerter(Alerter):
             "safe":"0"
         }
 
-        print len(content.encode('UTF-8'))
 
+        print len(content)
+        
         # set https proxy, if it was provided
         # proxies = {'https': self.pagerduty_proxy} if self.pagerduty_proxy else None
         try:
             response = requests.post(send_url, data=json.dumps(payload, ensure_ascii=False), headers=headers)
-            # response.raise_for_status()
+            response.raise_for_status()
         except RequestException as e:
-            raise EAException("Error posting to pagerduty: %s" % e)
-        elastalert_logger.info("Trigger sent to PagerDuty")
+            raise EAException("推送微信消息失败: %s" % e)
+        elastalert_logger.info("推送微信报警")
 
-        print "-----"
         print response.text
-        print "-----"
        
 
     def get_info(self):
