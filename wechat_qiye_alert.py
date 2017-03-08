@@ -34,7 +34,7 @@ class WeChatAlerter(Alerter):
         self.agent_id = self.rule.get('agent_id', '')   #应用id
 
         self.party_id = self.rule.get('party_id')       #部门id
-        self.user_d = self.rule.get('user_d', '')       #用户id，多人用 | 分割，全部用 @all
+        self.user_id = self.rule.get('user_id', '')     #用户id，多人用 | 分割，全部用 @all
         self.tag_id = self.rule.get('tag_id', '')       #标签id
         self.access_token = ''                          #微信身份令牌
         #self.expires_in=datetime.datetime.now() - datetime.timedelta(seconds=60)
@@ -93,7 +93,9 @@ class WeChatAlerter(Alerter):
         headers = {'content-type': 'application/json'}
 
         payload = {
-            'totag': self.tag_id,
+            "touser": self.user_id,
+            "toparty": self.party_id,
+            "totag": self.tag_id,
             'msgtype': "text",
             "agentid": self.agent_id,
             "text":{
