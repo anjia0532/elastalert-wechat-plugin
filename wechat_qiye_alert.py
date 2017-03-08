@@ -45,9 +45,11 @@ class WeChatAlerter(Alerter):
 
     def alert(self, matches):
         
+        if not self.party_id and not self.user_id and not self.tag_id:
+            elastalert_logger.warn("All touser & toparty & totag invalid")
+        
         # 参考elastalert的写法
         # https://github.com/Yelp/elastalert/blob/master/elastalert/alerts.py#L236-L243
-        
         body = self.create_alert_body(matches)
 
         # 微信企业号获取Token文档
@@ -55,6 +57,7 @@ class WeChatAlerter(Alerter):
         self.get_token()
         
         self.senddata(body)
+        
         elastalert_logger.info("send message to %s" % (self.corp_id))
 
     def get_token(self):
@@ -69,8 +72,7 @@ class WeChatAlerter(Alerter):
         try:
             token_file = urllib2.urlopen(get_token_url)
         except urllib2.HTTPError as e:
-            print e.code
-            print e.read().decode("utf8")
+            raise EAException("get access_token failed , http code : %s, http response content:%s" % e.code,e.read().decode("utf8"))
             sys.exit()
 
         token_data = token_file.read().decode('utf-8')
@@ -78,7 +80,7 @@ class WeChatAlerter(Alerter):
         token_json.keys()
         
         if token_json['access_token'] is None :
-            print token_data
+            elastalert_logger.warn("get access_token failed , the response is : %s" % token_data)
             sys.exit()
         
         #获取access_token和expires_in
@@ -93,6 +95,7 @@ class WeChatAlerter(Alerter):
 
         if len(content) > 2000:
             content = content[:1997] + "..."
+
         # 微信发送消息文档
         # http://qydev.weixin.qq.com/wiki/index.php?title=%E6%B6%88%E6%81%AF%E7%B1%BB%E5%9E%8B%E5%8F%8A%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F
         send_url = 'https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=' + self.access_token
@@ -100,9 +103,9 @@ class WeChatAlerter(Alerter):
         headers = {'content-type': 'application/json'}
 
         payload = {
-            "touser": self.user_id, #用户账户，建议使用tag
-            "toparty": self.party_id, #部门id，建议使用tag
-            "totag": self.tag_id, #tag可以很灵活的控制发送群体细粒度。比较理想的推送应该是，在heartbeat或者其他elastic工具自定义字段，添加标签id。这边根据自定义的标签id，进行推送
+            "touser": self.user_id and self.user_id or '', #用户账户，建议使用tag
+            "toparty": self.party_id and self.party_id or '', #部门id，建议使用tag
+            "totag": self.tag_id and self.tag_id or '', #tag可以很灵活的控制发送群体细粒度。比较理想的推送应该是，在heartbeat或者其他elastic工具自定义字段，添加标签id。这边根据自定义的标签id，进行推送
             'msgtype': "text",
             "agentid": self.agent_id,
             "text":{
@@ -118,11 +121,9 @@ class WeChatAlerter(Alerter):
             response = requests.post(send_url, data=json.dumps(payload, ensure_ascii=False), headers=headers)
             response.raise_for_status()
         except RequestException as e:
-            raise EAException("推送消息异常: %s" % e)
+            raise EAException("send message has error: %s" % e)
         
-        elastalert_logger.info("推送消息")
-
-        print response.text
+        elastalert_logger.info("send msg and response: %s" % response.text)
        
 
     def get_info(self):
