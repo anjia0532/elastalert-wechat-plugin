@@ -91,10 +91,13 @@ class WeChatAlerter(Alerter):
 
     def senddata(self, content):
         
-        # 微信企业号有字符长度限制，超长自动截断
-
-        if len(content) > 2000:
-            content = content[:1997] + "..."
+        # http://qydev.weixin.qq.com/wiki/index.php?title=%E6%B6%88%E6%81%AF%E7%B1%BB%E5%9E%8B%E5%8F%8A%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F
+        # 微信企业号有字符长度限制（2048），超长自动截断
+        
+        # 参考 http://blog.csdn.net/handsomekang/article/details/9397025 
+        #len utf8 3字节，gbk2 字节，ascii 1字节
+        if len(content) > 2048:
+            content = content[:2045] + "..."
 
         # 微信发送消息文档
         # http://qydev.weixin.qq.com/wiki/index.php?title=%E6%B6%88%E6%81%AF%E7%B1%BB%E5%9E%8B%E5%8F%8A%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F
