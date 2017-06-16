@@ -103,9 +103,9 @@ class WeChatAlerter(Alerter):
         headers = {'content-type': 'application/json'}
 
         payload = {
-            "touser": self.user_id and self.user_id or '', #用户账户，建议使用tag
-            "toparty": self.party_id and self.party_id or '', #部门id，建议使用tag
-            "totag": self.tag_id and self.tag_id or '', #tag可以很灵活的控制发送群体细粒度。比较理想的推送应该是，在heartbeat或者其他elastic工具自定义字段，添加标签id。这边根据自定义的标签id，进行推送
+            "touser": self.user_id and str(self.user_id) or '', #用户账户，建议使用tag
+            "toparty": self.party_id and str(self.party_id) or '', #部门id，建议使用tag
+            "totag": self.tag_id and str(self.tag_id) or '', #tag可以很灵活的控制发送群体细粒度。比较理想的推送应该是，在heartbeat或者其他elastic工具自定义字段，添加标签id。这边根据自定义的标签id，进行推送
             'msgtype': "text",
             "agentid": self.agent_id,
             "text":{
