@@ -9,6 +9,7 @@ import datetime
 from elastalert.alerts import Alerter, BasicMatchString
 from requests.exceptions import RequestException
 from elastalert.util import elastalert_logger
+from elastalert.util import EAException #[感谢minminmsn分享](https://github.com/anjia0532/elastalert-wechat-plugin/issues/2#issuecomment-311014492)
 import requests
 
 '''
