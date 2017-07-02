@@ -47,11 +47,14 @@ class WeChatAlerter(Alerter):
         
         if not self.party_id and not self.user_id and not self.tag_id:
             elastalert_logger.warn("All touser & toparty & totag invalid")
-        
+
         # 参考elastalert的写法
         # https://github.com/Yelp/elastalert/blob/master/elastalert/alerts.py#L236-L243
         body = self.create_alert_body(matches)
-
+        
+        #matches 是json格式
+        #self.create_alert_body(matches)是String格式,详见 [create_alert_body 函数](https://github.com/Yelp/elastalert/blob/master/elastalert/alerts.py)
+        
         # 微信企业号获取Token文档
         # http://qydev.weixin.qq.com/wiki/index.php?title=AccessToken
         self.get_token()
@@ -67,7 +70,7 @@ class WeChatAlerter(Alerter):
         #    return self.access_token
 
         #构建获取token的url
-        get_token_url = 'https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=' + self.corp_id + '&corpsecret=' + self.secret
+        get_token_url = 'https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=%s&corpsecret=%s' %(self.corp_id,self.secret)
 
         try:
             token_file = urllib2.urlopen(get_token_url)
@@ -91,6 +94,8 @@ class WeChatAlerter(Alerter):
 
     def senddata(self, content):
         
+        #如果需要原始json，需要传入matches
+        
         # http://qydev.weixin.qq.com/wiki/index.php?title=%E6%B6%88%E6%81%AF%E7%B1%BB%E5%9E%8B%E5%8F%8A%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F
         # 微信企业号有字符长度限制（2048），超长自动截断
         
@@ -101,10 +106,11 @@ class WeChatAlerter(Alerter):
 
         # 微信发送消息文档
         # http://qydev.weixin.qq.com/wiki/index.php?title=%E6%B6%88%E6%81%AF%E7%B1%BB%E5%9E%8B%E5%8F%8A%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F
-        send_url = 'https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=' + self.access_token
+        send_url = 'https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=%s' %( self.access_token)
 
         headers = {'content-type': 'application/json'}
 
+        #最新微信企业号调整校验规则，tagid必须是string类型，如果是数字类型会报错，故而使用str()函数进行转换
         payload = {
             "touser": self.user_id and str(self.user_id) or '', #用户账户，建议使用tag
             "toparty": self.party_id and str(self.party_id) or '', #部门id，建议使用tag
