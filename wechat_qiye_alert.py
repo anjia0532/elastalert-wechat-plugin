@@ -38,7 +38,7 @@ class WeChatAlerter(Alerter):
         self.user_id = self.rule.get('user_id', '')     #用户id，多人用 | 分割，全部用 @all
         self.tag_id = self.rule.get('tag_id', '')       #标签id
         self.access_token = ''                          #微信身份令牌
-        #self.expires_in=datetime.datetime.now() - datetime.timedelta(seconds=60)
+        self.expires_in=datetime.datetime.now() - datetime.timedelta(seconds=60)
 
     def create_default_title(self, matches):
         subject = 'ElastAlert: %s' % (self.rule['name'])
@@ -67,8 +67,8 @@ class WeChatAlerter(Alerter):
     def get_token(self):
 
         #获取token是有次数限制的,本想本地缓存过期时间和token，但是elastalert每次调用都是一次性的，不能全局缓存
-        #if self.expires_in >= datetime.datetime.now() and not self.access_token:
-        #    return self.access_token
+        if self.expires_in >= datetime.datetime.now() and  self.access_token:
+            return self.access_token
 
         #构建获取token的url
         get_token_url = 'https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=%s&corpsecret=%s' %(self.corp_id,self.secret)
@@ -76,20 +76,20 @@ class WeChatAlerter(Alerter):
         try:
             token_file = urllib2.urlopen(get_token_url)
         except urllib2.HTTPError as e:
-            raise EAException("get access_token failed , http code : %s, http response content:%s" % e.code,e.read().decode("utf8"))
+            raise EAException("get access_token failed , http code : %s, http response content:%s" % (e.code,e.read().decode("utf8")))
             sys.exit()
 
         token_data = token_file.read().decode('utf-8')
         token_json = json.loads(token_data)
         token_json.keys()
         
-        if token_json['access_token'] is None :
+        if 'access_token' not in token_json :
             elastalert_logger.warn("get access_token failed , the response is : %s" % token_data)
             sys.exit()
         
         #获取access_token和expires_in
         self.access_token = token_json['access_token']
-        #self.expires_in = datetime.datetime.now() + datetime.timedelta(seconds=token_json['expires_in'])
+        self.expires_in = datetime.datetime.now() + datetime.timedelta(seconds=token_json['expires_in'])
         
         return self.access_token
 
