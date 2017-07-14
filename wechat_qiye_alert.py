@@ -2,14 +2,13 @@
 # -*- coding: utf-8 -*-
 
 #from __future__ import unicode_literals 
-import urllib,urllib2
+#import urllib,urllib2
 import json
 import sys
 import datetime
 from elastalert.alerts import Alerter, BasicMatchString
 from requests.exceptions import RequestException
-from elastalert.util import elastalert_logger
-from elastalert.util import EAException #[感谢minminmsn分享](https://github.com/anjia0532/elastalert-wechat-plugin/issues/2#issuecomment-311014492)
+from elastalert.util import elastalert_logger,EAException #[感谢minminmsn分享](https://github.com/anjia0532/elastalert-wechat-plugin/issues/2#issuecomment-311014492)
 import requests
 
 '''
@@ -67,30 +66,29 @@ class WeChatAlerter(Alerter):
     def get_token(self):
 
         #获取token是有次数限制的,本想本地缓存过期时间和token，但是elastalert每次调用都是一次性的，不能全局缓存
-        if self.expires_in >= datetime.datetime.now() and  self.access_token:
+        if self.expires_in >= datetime.datetime.now() and self.access_token:
             return self.access_token
 
         #构建获取token的url
         get_token_url = 'https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=%s&corpsecret=%s' %(self.corp_id,self.secret)
 
         try:
-            token_file = urllib2.urlopen(get_token_url)
-        except urllib2.HTTPError as e:
-            raise EAException("get access_token failed , http code : %s, http response content:%s" % (e.code,e.read().decode("utf8")))
+            response = requests.get(get_token_url)
+            response.raise_for_status()
+        except RequestException as e:
+            raise EAException("get access_token failed , http code : %s, http response content:%s" % e.code,e.read().decode("utf8"))
             sys.exit()
 
-        token_data = token_file.read().decode('utf-8')
-        token_json = json.loads(token_data)
-        token_json.keys()
-        
+        token_json = response.json()
+
         if 'access_token' not in token_json :
-            elastalert_logger.warn("get access_token failed , the response is : %s" % token_data)
+            elastalert_logger.error("get access_token failed , the response is : %s" % response.text())
             sys.exit()
-        
+
         #获取access_token和expires_in
         self.access_token = token_json['access_token']
         self.expires_in = datetime.datetime.now() + datetime.timedelta(seconds=token_json['expires_in'])
-        
+
         return self.access_token
 
     def senddata(self, content):
