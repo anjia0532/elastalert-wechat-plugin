@@ -1,7 +1,7 @@
 FROM python:2.7-alpine
 
 ENV SET_CONTAINER_TIMEZONE false
-ENV ELASTALERT_VERSION v0.1.18
+ENV ELASTALERT_VERSION v0.1.17
 ENV CONTAINER_TIMEZONE Asia/Shanghai
 ENV ELASTALERT_URL https://github.com/Yelp/elastalert/archive/${ELASTALERT_VERSION}.tar.gz
 #ENV WECHAT_PLUGIN_URL https://raw.githubusercontent.com/anjia0532/elastalert-wechat-plugin/master/wechat_qiye_alert.py
