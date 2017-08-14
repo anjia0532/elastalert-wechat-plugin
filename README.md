@@ -17,8 +17,11 @@ docker hub repo [anjia0532/elastalert-wechat-plugin](https://hub.docker.com/r/an
 
 ```bash
 
+#默认docker官方库
 docker pull anjia0532/elastalert-wechat-plugin
 
+#阿里云镜像库
+docker pull registry.cn-hangzhou.aliyuncs.com/shunneng/elastalert-wechat-plugin
 ```
 
 ### 环境变量说明
