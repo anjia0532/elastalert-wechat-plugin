@@ -31,7 +31,7 @@ RUN \
     tar -xzvf elastalert.tar.gz -C ${ELASTALERT_HOME} --strip-components 1 && \
     rm elastalert.tar.gz && \
     
-    sed 's/requests.*$/requests==2.18.1/g' ${ELASTALERT_HOME}/requirements.txt &&\
+    pip install "requests==2.18.1" && \
     pip install "setuptools>=11.3" && \
     python setup.py install
 
