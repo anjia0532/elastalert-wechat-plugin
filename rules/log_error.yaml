@@ -1,0 +1,61 @@
+name: log_error
+type: frequency
+index: logstash-*
+# link to a kibana dashboard with correct time settings
+#use_kibana4_dashboard: "http://localhost:5601/app/kibana#/dashboard/monitoring-dashboard"
+num_events: 1
+timeframe:
+    minutes: 1
+filter:
+- query:
+    query_string:
+      query: "level:ERROR"
+
+#只需要的字段 https://elastalert.readthedocs.io/en/latest/ruletypes.html#include
+include: ["instance_name","app_name","level","logger_name","message","stack_trace"]
+# (Required)
+# The alert is use when a match is found
+alert:
+#- "email"
+- "elastalert_modules.wechat_qiye_alert.WeChatAlerter"
+#增强器 https://elastalert.readthedocs.io/en/latest/recipes/adding_enhancements.html
+#match_enhancements:
+#- "elastalert_modules.my_enhancements.MyEnhancement"
+
+# email相关配置
+# (required, email specific)
+# a list of email addresses to send alerts to
+#email:
+#接收报警邮件的邮箱
+#- "xxxx@qq.com"
+#SMTP协议的邮件服务器相关配置
+#smtp.163.com是网易163邮箱的smtp服务器
+#登陆163邮箱后，找到 【设置】>【POP3/SMTP/IMAP】>开启，然后设置【客户端授权密码】
+#smtp_host: smtp.163.com
+#smtp_port: 25
+#用户认证文件，需要user和password两个属性
+#注意将${userName}替换成具体用户名
+#smtp_auth_file: /home/sn/elkstack/elastalert/smtp_auth_file.yaml
+#回复给那个邮箱
+#email_reply_to: xxxx@163.com
+#从哪个邮箱发送
+#from_addr: xxxx@163.com
+
+#微信企业号相关
+# (required, email specific)
+# a list of email addresses to send alerts to
+
+#后台登陆后【设置】->【权限管理】->【普通管理组】->【创建并设置通讯录和应用权限】->【CorpID，Secret】
+#设置微信企业号的appid
+corp_id: xxx
+#设置微信企业号的Secret
+secret: xxx
+#后台登陆后【应用中心】->【选择应用】->【应用id】
+#设置微信企业号应用id
+agent_id: xx
+#部门id
+#party_id: xx
+#用户微信号
+#user_id: xx
+# 标签id，多个用 | 分隔
+tag_id: xxx
