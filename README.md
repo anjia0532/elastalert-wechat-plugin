@@ -14,6 +14,7 @@
 ubuntu 16.04 python 2.7.12 正常，如果条件允许，建议使用docker镜像，减少环境差异导致的各种奇葩问题
 
 docker hub repo [anjia0532/elastalert-wechat-plugin](https://hub.docker.com/r/anjia0532/elastalert-wechat-plugin/)
+
 docker hub [![Automated build](https://img.shields.io/docker/automated/anjia0532/elastalert-wechat-plugin.svg)](https://hub.docker.com/r/anjia0532/elastalert-wechat-plugin/) [![Docker Pulls](https://img.shields.io/docker/pulls/anjia0532/elastalert-wechat-plugin.svg)](https://hub.docker.com/v2/repositories/anjia0532/elastalert-wechat-plugin/)
 
 ```bash
