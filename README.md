@@ -2,6 +2,17 @@
 
 基于ElastAlert的微信企业号报警插件
 
+## 重要说明
+
+本项目停止维护，如有需要请移至我的另一个项目 [anjia0532/elastalert-docker](https://github.com/anjia0532/elastalert-docker)
+
+优势
+1. 支持 py3.6+(本项目只支持2.7)
+2. 支持环境变量配置，使用更简单
+3. 同时支持 企业微信和钉钉群报警
+4. 对于时区进行了优化，比如支持东八区
+等...
+
 ## 使用说明
 使用说明详见 https://anjia0532.github.io/2017/02/16/elastalert-wechat-plugin/
 
